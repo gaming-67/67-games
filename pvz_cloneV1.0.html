@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Plants vs Zombies JS</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #111; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        #ui { position: absolute; top: 20px; left: 20px; color: white; text-shadow: 2px 2px 4px #000; pointer-events: none; }
+        .controls { margin-top: 10px; font-size: 0.9em; opacity: 0.8; }
+        #game-over { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            color: red; font-size: 50px; display: none; text-align: center; background: rgba(0,0,0,0.8); padding: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui">
+        <h2 id="sun-display">Sun: 100</h2>
+        <div id="selection">Selected: <span id="current-plant" style="color: #00ff00;">Peashooter (50)</span></div>
+        <div class="controls">
+            [1] Peashooter (50) | [2] Sunflower (25) | [3] Wall-nut (50) <br>
+            Click the lawn to plant!
+        </div>
+    </div>
+
+    <div id="game-over">THE ZOMBIES ATE YOUR BRAINS!<br><button onclick="location.reload()">Retry</button></div>
+
+    <script type="importmap">
+        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+
+        // --- SCENE & RENDERER ---
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x131d29);
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // --- LIGHTING ---
+        const sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        sunLight.position.set(5, 10, 7.5);
+        scene.add(sunLight);
+        scene.add(new THREE.AmbientLight(0x404040, 0.8));
+
+        // --- THE LAWN ---
+        const lawnGeo = new THREE.PlaneGeometry(11, 6);
+        const lawnMat = new THREE.MeshStandardMaterial({ color: 0x2d5a27 });
+        const lawn = new THREE.Mesh(lawnGeo, lawnMat);
+        lawn.rotation.x = -Math.PI / 2;
+        scene.add(lawn);
+
+        const grid = new THREE.GridHelper(11, 11, 0x000000, 0x3a6b35);
+        grid.position.y = 0.01;
+        scene.add(grid);
+
+        camera.position.set(0, 7, 7);
+        camera.lookAt(0, 0,
