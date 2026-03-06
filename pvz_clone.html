@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>3D PvZ Clone Starter</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #222; font-family: sans-serif; }
+        #ui { position: absolute; top: 10px; left: 10px; color: white; pointer-events: none; }
+    </style>
+</head>
+<body>
+    <div id="ui">
+        <h1>3D PvZ Clone</h1>
+        <p>Click the lawn to plant a "Peashooter" (Green Box)</p>
+    </div>
+    <script type="importmap">
+        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js" } }
+    </script>
+    <script type="module">
+        import * as THREE from 'three';
+
+        // --- SCENE SETUP ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        const light = new THREE.DirectionalLight(0xffffff, 1);
+        light.position.set(5, 10, 7.5);
+        scene.add(light, new THREE.AmbientLight(0x404040));
+
+        // --- GAME WORLD ---
+        const grid = new THREE.GridHelper(10, 10, 0x00ff00, 0x444444);
+        scene.add(grid);
+
+        const lawn = new THREE.Mesh(
+            new THREE.PlaneGeometry(10, 10),
+            new THREE.MeshStandardMaterial({ color: 0x228b22 })
+        );
+        lawn.rotation.x = -Math.PI / 2;
+        scene.add(lawn);
+
+        camera.position.set(0, 8, 8);
+        camera.lookAt(0, 0, 0);
+
+        // --- GAME LOGIC ---
+        const plants = [];
+        const zombies = [];
+
+        function spawnPlant(x, z) {
+            const plant = new THREE.Mesh(
+                new THREE.BoxGeometry(0.5, 0.8, 0.5),
+                new THREE.MeshStandardMaterial({ color: 0x00ff00 })
+            );
+            plant.position.set(Math.round(x), 0.4, Math.round(z));
+            scene.add(plant);
+            plants.push(plant);
+        }
+
+        function spawnZombie() {
+            const zombie = new THREE.Mesh(
+                new THREE.CapsuleGeometry(0.3, 0.7),
+                new THREE.MeshStandardMaterial({ color: 0xff0000 })
+            );
+            zombie.position.set(5, 0.5, Math.floor(Math.random() * 5) - 2);
+            scene.add(zombie);
+            zombies.push(zombie);
+        }
+
+        // --- INTERACTION ---
+        window.addEventListener('mousedown', (event) => {
+            const mouse = new THREE.Vector2(
+                (event.clientX / window.innerWidth) * 2 - 1,
+                -(event.clientY / window.innerHeight) * 2 + 1
+            );
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObject(lawn);
+            if (intersects.length > 0) {
+                spawnPlant(intersects[0].point.x, intersects[0].point.z);
+            }
+        });
+
+        // Spawn a zombie every 3 seconds
+        setInterval(spawnZombie, 3000);
+
+        // --- ANIMATION LOOP ---
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Move Zombies
+            zombies.forEach(z => {
+                z.position.x -= 0.02;
+            });
+
+            renderer.render(scene, camera);
+        }
+        animate();
+    </script>
+</body>
+</html>
